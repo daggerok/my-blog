@@ -1,0 +1,65 @@
+notifications:
+  email: false
+git:
+  quiet: true
+  depth: false
+language: python
+python: 3.8
+node_js: lts/*
+addons:
+  apt:
+    update: false
+    packages:
+      - curl
+install: true
+before_install:
+  - |
+    if [ ! -f ${HOME}/.local/daggerok/bash-functions/master/main.bash ] ; then
+      mkdir -p ${HOME}/.local/daggerok/bash-functions/master
+      curl -s https://raw.githubusercontent.com/daggerok/bash-functions/master/main.bash > ${HOME}/.local/daggerok/bash-functions/master/main.bash
+    fi
+    source ${HOME}/.local/daggerok/bash-functions/master/main.bash
+    stop_any 3000 5000
+  - |
+    export PATH=$HOME/.local/bin:$PATH
+    python -m pip install --upgrade pip setuptools pyopenssl
+    python -m pip install --upgrade httpie
+jobs:
+  include:
+    - stage: test
+      name: test
+      before_script:
+        - cd $TRAVIS_BUILD_DIR && npm i -E
+        - cd $TRAVIS_BUILD_DIR && npm start
+        - cd $TRAVIS_BUILD_DIR && npm run logs &
+        - wait_for 8080
+      script:
+        - http :8080
+        - curl 127.0.0.1:8080
+      after_script: cd $TRAVIS_BUILD_DIR && npm stop
+    - stage: deploy
+      name: GitHub Pages
+      env:
+        - secure: "1lbhhX/kp5B1sQSdLgtOQfY8x4xXW73noDZ8YLrGGxjXuDKKlJihLLGdTb1wk9pP2wIPskAcKZSKxjHbS+JrPKRgwJvgAu2U6NK5giuu+aWf6PslVYbKnAPB4S0tEf33vhddIPgO2Y6xGC+7Q2sM9oRbmgjyzvRymc6CiQ0qpceb1Ru6Nk7cXtyVufP/EIEcG1M45oGsTEhdzxZx7PxUnpQ1nwud+g48a0TkGPzwvRUjKbxkTwgTq0prwWGKcWkxdL7fyXIYby12cmWLcY5vWZkG9PWotM4pjEZ8++R1WqW4oI3gKjeDpdwV3E+nPeVoJziFjRkYc6C0QcKPtJJAWIrZWUKiouqcrYX09QO1Xp4TJxLkQm0vns8ge+cmelpX6Ztzy+kuTowTKu02OSGgjp/7QsbBX/79o6PJHMe2GEPdITki46Jqwr4G9/5/v5mo1A/XWofCQBeS+2MUXvqYXQlHk+7ZOxkAeW5d+tjJmOF72etg1GA8xOMq+Z35/1EBecPzCXtbdieK+10XlMqQlDY8Um5w2RtP8iA6gjjddHAHJRVpGVuqHSiRrsiuYgcOxdFwaJZA7i7mh2qpoyRucmu+OoIKus/5Qj9TK8ixaBAaV7YM+eAr/5ZY80KSn3SD6zGaVj+dvsei7mzhJXroPXKoUkbY+3eoJMHkdauRS3g="
+      script: skip
+      before_deploy:
+        - set -e
+        - cd $TRAVIS_BUILD_DIR && npm i -E
+        - cd $TRAVIS_BUILD_DIR && npm run gh
+      deploy: &pages
+        provider: pages
+        skip-cleanup: true
+        keep-history: true
+        target_branch: gh-pages
+        github-token: "$GITHUB_TOKEN"
+        local-dir: $TRAVIS_BUILD_DIR/blog/.vuepress/dist
+        on:
+          branch: master
+          condition: "$TRAVIS_PULL_REQUEST = false"
+cache:
+  npm: true
+  pip: true
+  packages: true
+  directories:
+    - ~/.n*
+    - ~/.local/daggerok

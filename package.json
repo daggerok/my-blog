@@ -1,0 +1,40 @@
+{
+  "name": "my-blog",
+  "version": "0.0.1",
+  "description": "VuePress blog created by npx create-vuepress my-blog command",
+  "main": "index.js",
+  "authors": {
+    "name": "Max",
+    "email": "daggerok@gmail.com"
+  },
+  "repository": "https://github.com/daggerok/my-blog",
+  "scripts": {
+    "dev": "vuepress dev blog",
+    "build": "vuepress build blog",
+    "serve": "serve blog/.vuepress/dist",
+    "start": "pm2 start 'npm run dev' --name app",
+    "restart": "pm2 restart app",
+    "stop": "pm2 kill",
+    "logs": "pm2 logs",
+    "gh": "cross-env BASE_HREF='/my-blog/' npm run build"
+  },
+  "keywords": [
+    "pm2",
+    "vuepress",
+    "create-vuepress",
+    "cross-env",
+    "gh-pages",
+    "publicPath",
+    "baseHref",
+    "base"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@vuepress/plugin-back-to-top": "1.3.0",
+    "@vuepress/theme-blog": "2.0.3",
+    "cross-env": "7.0.0",
+    "pm2": "4.2.3",
+    "serve": "11.3.0",
+    "vuepress": "1.3.0"
+  }
+}
